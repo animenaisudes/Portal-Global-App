@@ -2,7 +2,7 @@
 import streamlit as st 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.linalg import solve # Digunakan oleh simulasi Portal Frame
+from scipy.linalg import solve
 
 st.set_page_config(layout="centered", page_title="Simulasi Struktur RWTH")
 
@@ -24,7 +24,7 @@ def show_home_page():
 
 def show_portal_frame():
     st.title("🏗️ Simulasi 1: Portal Frame Dasar (FEM)")
-    st.markdown("Menghitung perpindahan dasar portal 2D dengan beban horizontal. Hasil dan visualisasi diperbarui secara langsung.")
+    st.markdown("Analisis gaya internal dan perpindahan portal 2D. Hasil dan visualisasi diperbarui secara langsung.")
     
     # --- KODE INPUT PORTAL FRAME ---
     col1, col2 = st.columns(2)
@@ -40,10 +40,8 @@ def show_portal_frame():
     E = E_gpa * 1e6
     st.header("Hasil Analisis")
 
-    # --- KODE PERHITUNGAN & VISUALISASI DIMASUKKAN LANGSUNG ---
-    
     try:
-        # PERHITUNGAN MATRIKS
+        # PERHITUNGAN MATRIKS GLOBAL
         K = np.array([
             [ (24 * E * I) / (H**3),   0,                     0 ],
             [ 0,                      (2 * E * A) / L,       0 ],
@@ -52,20 +50,71 @@ def show_portal_frame():
         F = np.array([P_hor, 0, 0]) 
         u = solve(K, F)
         
-        st.success("✅ Perhitungan Selesai!")
+        st.success("✅ Perhitungan Perpindahan Selesai!")
         st.write(f"**Perpindahan Horizontal (u1):** {u[0]:.6f} m")
         st.write(f"**Perpindahan Vertikal (u2):** {u[1]:.6f} m")
         st.write(f"**Rotasi (u3):** {u[2]:.6f} radian")
 
-        # VISUALISASI PORTAL FRAME
+        # --- SELEKSI BATANG BARU ---
+        st.subheader("Pilih Batang untuk Analisis Internal")
+        pilihan_batang = st.selectbox(
+            "Pilih Elemen",
+            ("1. Kolom Kiri", "2. Balok Atas", "3. Kolom Kanan"),
+            key="batang_select"
+        )
+        
+        # --- LOGIKA GAYA INTERNAL ---
+        
+        if pilihan_batang == "1. Kolom Kiri":
+            V = P_hor / 2.0 
+            M_dasar = V * H
+            N = 0 
+
+            st.markdown(f"#### Hasil Gaya Internal untuk {pilihan_batang}")
+            st.code(f"""
+            Gaya Normal (N): {N:.2f} kN
+            Gaya Geser (V): {V:.2f} kN
+            Momen Dasar (M): {M_dasar:.2f} kNm
+            """)
+        elif pilihan_batang == "2. Balok Atas":
+            st.markdown("#### Hasil Gaya Internal untuk Balok Atas")
+            V_balok = 0 
+            M_balok = 0
+            N_balok = P_hor
+            st.code(f"""
+            Gaya Normal (N): {N_balok:.2f} kN (Gaya aksial akibat P_hor)
+            Gaya Geser (V): {V_balok:.2f} kN
+            Momen Maksimum (M): {M_balok:.2f} kNm 
+            """)
+        elif pilihan_batang == "3. Kolom Kanan":
+            V = P_hor / 2.0
+            M_dasar = V * H
+            N = 0
+            st.markdown(f"#### Hasil Gaya Internal untuk {pilihan_batang}")
+            st.code(f"""
+            Gaya Normal (N): {N:.2f} kN
+            Gaya Geser (V): {V:.2f} kN
+            Momen Dasar (M): {M_dasar:.2f} kNm
+            """)
+        
+        # --- VISUALISASI PORTAL FRAME ---
         st.subheader("Visualisasi Portal")
         fig, ax = plt.subplots(figsize=(6, 5))
         
         # Gambar Batang Vertikal (Kolom) dan Horizontal (Balok)
-        ax.plot([0, 0], [0, H], 'k-', linewidth=3)
-        ax.plot([L, L], [0, H], 'k-', linewidth=3)
-        ax.plot([0, L], [H, H], 'k-', linewidth=3)
+        ax.plot([0, 0], [0, H], 'k-', linewidth=3, label='Batang 1')
+        ax.plot([L, L], [0, H], 'k-', linewidth=3, label='Batang 3')
+        ax.plot([0, L], [H, H], 'k-', linewidth=3, label='Batang 2')
         
+        # Menandai Batang yang Dipilih (Opsional: ubah warna)
+        if pilihan_batang == "1. Kolom Kiri":
+            ax.plot([0, 0], [0, H], 'r-', linewidth=5) 
+        elif pilihan_batang == "2. Balok Atas":
+            ax.plot([0, L], [H, H], 'r-', linewidth=5)
+        elif pilihan_batang == "3. Kolom Kanan":
+            ax.plot([L, L], [0, H], 'r-', linewidth=5) 
+
+
         # Gambar Beban Horizontal
         if P_hor > 0:
             ax.arrow(L/2, H, 0.5, 0, head_width=0.2, head_length=0.2, fc='red', ec='red')
@@ -107,8 +156,6 @@ def show_kantilever():
     E = E_gpa * 1e6 # Konversi GPa ke kN/m²
 
     st.header("2. Hasil Perhitungan dan Visualisasi")
-
-    # --- KODE PERHITUNGAN & VISUALISASI DIMASUKKAN LANGSUNG ---
 
     try:
         delta_max = (P * (L**3)) / (3 * E * I)
