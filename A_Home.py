@@ -1,4 +1,4 @@
-# A_Home.py - Aplikasi Simulasi Struktur Teknik Sipil (All-in-One)
+# A_Home.py - Aplikasi Simulasi Struktur Teknik Sipil (Final Version)
 import streamlit as st 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,25 +42,25 @@ def show_portal_frame():
 
     try:
         # PERHITUNGAN MATRIKS GLOBAL (Untuk Portal Jepit-Jepit-Jepit Sederhana)
-        # K*u = F; K = 3x3 Matriks Kekakuan Global (u1, u2, u3)
         K = np.array([
             [ (24 * E * I) / (H**3),   0,                     0 ],
             [ 0,                      (2 * E * A) / L,       0 ],
             [ 0,                       0,                     (8 * E * I) / L ]
         ])
-        F = np.array([P_hor, 0, 0]) # F1 = P_hor, F2 = 0, F3 = 0
+        F = np.array([P_hor, 0, 0]) 
         u = solve(K, F)
         
         st.success("✅ Perhitungan Perpindahan Selesai!")
         
-        # Tampilkan Perpindahan Utama dalam 3 Kolom
+        # Tampilkan Perpindahan Utama dalam 3 Kolom (Format st.metric)
         st.subheader("Perpindahan Global")
         col_u1, col_u2, col_u3 = st.columns(3)
-        col_u1.metric("Horizontal (u1)", f"{u[0]:.6f} m")
-        col_u2.metric("Vertikal (u2)", f"{u[1]:.6f} m")
-        col_u3.metric("Rotasi (u3)", f"{u[2]:.6f} rad")
+        col_u1.metric("Horizontal (u₁)", f"{u[0]:.6f} m")
+        col_u2.metric("Vertikal (u₂)", f"{u[1]:.6f} m")
+        col_u3.metric("Rotasi (u₃)", f"{u[2]:.6f} rad")
 
-        # --- SELEKSI BATANG UNTUK GAYA INTERNAL ---
+
+        # --- SELEKSI BATANG DENGAN RADIO BUTTONS ---
         st.subheader("Gaya Internal: Pilih Elemen")
         pilihan_batang = st.radio(
             "Pilih Elemen Batang untuk Melihat Gaya Internal (N, V, M):",
@@ -85,7 +85,7 @@ def show_portal_frame():
             N_balok = P_hor 
             st.markdown("#### Hasil Gaya Internal untuk **Balok Atas**")
             st.code(f"""
-            Gaya Normal (N): {N_balok:.2f} kN (Gaya aksial dari u2)
+            Gaya Normal (N): {N_balok:.2f} kN (Gaya aksial dari u₂)
             Gaya Geser (V): 0.00 kN
             Momen Maksimum (M): 0.00 kNm 
             """)
@@ -120,7 +120,7 @@ def show_portal_frame():
         elif pilihan_batang == "2. Balok Atas":
             ax.plot([0, L], [H, H], 'y-', linewidth=6, alpha=0.5, zorder=2)
         elif pilihan_batang == "3. Kolom Kanan":
-            ax.plot([L, L], [0, H], **highlight_style)
+            ax.plot([L, L], [0, H], 'y-', linewidth=6, alpha=0.5, zorder=2)
 
         # 4. Label Node (Titik Biru dan Angka)
         for node, (x, y) in nodes.items():
@@ -129,7 +129,6 @@ def show_portal_frame():
 
         # 5. Gambar Tumpuan Jepit (Fixed Support)
         support_y = -0.1 * H
-        # Simbol jepit
         ax.fill([-0.3, 0.3, 0.3, -0.3], [support_y-0.2, support_y-0.2, support_y, support_y], 'gray', edgecolor='black', zorder=2)
         ax.fill([L-0.3, L+0.3, L+0.3, L-0.3], [support_y-0.2, support_y-0.2, support_y, support_y], 'gray', edgecolor='black', zorder=2)
 
