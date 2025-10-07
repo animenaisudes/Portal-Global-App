@@ -1,4 +1,4 @@
-# portal_frame_app.py
+# 1_Portal_Frame.py
 
 # --- 1. IMPOR LIBRARY ---
 import streamlit as st 
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.linalg import solve # Alat untuk memecahkan persamaan matriks
 
 # --- 2. JUDUL APLIKASI ---
-st.title("🏗️ Simulasi Portal Frame 2D Dasar (FEM)")
+st.title("🏗️ Simulasi 1: Portal Frame Dasar (FEM)")
 st.markdown("Aplikasi sederhana untuk menghitung perpindahan dasar portal 2D dengan beban horizontal.")
 
 # ----------------------------------------------------------------------
@@ -43,7 +43,7 @@ if st.button("Hitung Perpindahan (u)"):
     # Matriks Kekakuan Global (K) 3x3 yang sangat disederhanakan
     
     try:
-        # Matriks K yang disederhanakan (Hanya untuk demonstrasi matriks FEM dasar)
+        # Matriks K yang disederhanakan 
         K = np.array([
             # u1 (Horizontal)
             [ (24 * E * I) / (H**3),   0,                     0 ],
