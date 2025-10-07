@@ -1,12 +1,12 @@
-# A_Home.py
+# A_Home.py - Aplikasi Simulasi Struktur Teknik Sipil (All-in-One)
 import streamlit as st 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.linalg import solve
+from scipy.linalg import solve # Digunakan oleh simulasi Portal Frame
 
 st.set_page_config(layout="centered", page_title="Simulasi Struktur RWTH")
 
-# --- DEFINISI FUNGSI SIMULASI ---
+# --- DEFINISI HALAMAN ---
 
 def show_home_page():
     st.title("Proyek Simulasi Struktur Teknik Sipil (RWTH)")
@@ -15,12 +15,10 @@ def show_home_page():
     Ini adalah platform yang dibuat untuk membantu mahasiswa teknik sipil memahami dasar-dasar analisis struktur.
 
     **Silakan pilih jenis simulasi dari menu di sidebar (kiri).**
-
-    ---
-    ### Analisis Tersedia:
-    - Portal Frame 2D (Analisis FEM Dasar)
-    - Balok Kantilever (Analisis Lendutan Klasik)
     """)
+    st.subheader("Analisis Tersedia:")
+    st.markdown("- **1. Portal Frame 2D:** Analisis Kekakuan Global (FEM Dasar)")
+    st.markdown("- **2. Balok Kantilever:** Analisis Lendutan Klasik")
 
 def show_portal_frame():
     st.title("🏗️ Simulasi 1: Portal Frame Dasar (FEM)")
@@ -69,7 +67,6 @@ def show_portal_frame():
             V = P_hor / 2.0 
             M_dasar = V * H
             N = 0 
-
             st.markdown(f"#### Hasil Gaya Internal untuk {pilihan_batang}")
             st.code(f"""
             Gaya Normal (N): {N:.2f} kN
