@@ -2,11 +2,12 @@
 import streamlit as st 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.linalg import solve # Digunakan oleh simulasi Portal Frame
+from scipy.linalg import solve 
 
+# Konfigurasi Halaman (Harus di bagian paling atas)
 st.set_page_config(layout="centered", page_title="Simulasi Struktur RWTH")
 
-# --- DEFINISI HALAMAN ---
+# --- DEFINISI HALAMAN DAN FUNGSI ---
 
 def show_home_page():
     st.title("Proyek Simulasi Struktur Teknik Sipil (RWTH)")
@@ -33,19 +34,21 @@ def show_portal_frame():
         E_gpa = st.number_input("Modulus Elastisitas (E) [GPa]", 100.0, 400.0, 200.0, 10.0, key="pE")
         I = st.number_input("Momen Inersia (I) [m⁴]", 0.0001, 0.1, 0.001, format="%.4f", key="pI")
         A = st.number_input("Luas Penampang (A) [m²]", 0.001, 0.5, 0.01, format="%.3f", key="pA")
-    P_hor = st.number_input("Gaya Horizontal (P) di Balok [kN]", 0.0, 50.0, 10.0, key="pP")
+    
+    P_hor = st.number_input("Gaya Horizontal (P) [kN] (Di node 2)", 0.0, 50.0, 10.0, key="pP")
     
     E = E_gpa * 1e6
     st.header("Hasil Analisis")
 
     try:
-        # PERHITUNGAN MATRIKS GLOBAL
+        # PERHITUNGAN MATRIKS GLOBAL (Untuk Portal Jepit-Jepit-Jepit Sederhana)
+        # K*u = F; K = 3x3 Matriks Kekakuan Global (u1, u2, u3)
         K = np.array([
             [ (24 * E * I) / (H**3),   0,                     0 ],
             [ 0,                      (2 * E * A) / L,       0 ],
             [ 0,                       0,                     (8 * E * I) / L ]
         ])
-        F = np.array([P_hor, 0, 0]) 
+        F = np.array([P_hor, 0, 0]) # F1 = P_hor, F2 = 0, F3 = 0
         u = solve(K, F)
         
         st.success("✅ Perhitungan Perpindahan Selesai!")
@@ -53,7 +56,7 @@ def show_portal_frame():
         st.write(f"**Perpindahan Vertikal (u2):** {u[1]:.6f} m")
         st.write(f"**Rotasi (u3):** {u[2]:.6f} radian")
 
-        # --- SELEKSI BATANG BARU ---
+        # --- SELEKSI BATANG UNTUK GAYA INTERNAL ---
         st.subheader("Pilih Batang untuk Analisis Internal")
         pilihan_batang = st.selectbox(
             "Pilih Elemen",
@@ -64,67 +67,92 @@ def show_portal_frame():
         # --- LOGIKA GAYA INTERNAL ---
         
         if pilihan_batang == "1. Kolom Kiri":
+            # Gaya Geser (V) adalah P_hor / 2
             V = P_hor / 2.0 
+            # Momen Dasar (M) adalah V * H
             M_dasar = V * H
             N = 0 
-            st.markdown(f"#### Hasil Gaya Internal untuk {pilihan_batang}")
+            st.markdown(f"#### Hasil Gaya Internal untuk **{pilihan_batang}**")
             st.code(f"""
             Gaya Normal (N): {N:.2f} kN
             Gaya Geser (V): {V:.2f} kN
             Momen Dasar (M): {M_dasar:.2f} kNm
             """)
         elif pilihan_batang == "2. Balok Atas":
-            st.markdown("#### Hasil Gaya Internal untuk Balok Atas")
-            V_balok = 0 
-            M_balok = 0
-            N_balok = P_hor
+            # Balok hanya menerima gaya aksial akibat perpindahan horizontal.
+            N_balok = P_hor 
+            st.markdown("#### Hasil Gaya Internal untuk **Balok Atas**")
             st.code(f"""
-            Gaya Normal (N): {N_balok:.2f} kN (Gaya aksial akibat P_hor)
-            Gaya Geser (V): {V_balok:.2f} kN
-            Momen Maksimum (M): {M_balok:.2f} kNm 
+            Gaya Normal (N): {N_balok:.2f} kN (Gaya aksial dari u2)
+            Gaya Geser (V): 0.00 kN
+            Momen Maksimum (M): 0.00 kNm 
             """)
         elif pilihan_batang == "3. Kolom Kanan":
             V = P_hor / 2.0
             M_dasar = V * H
             N = 0
-            st.markdown(f"#### Hasil Gaya Internal untuk {pilihan_batang}")
+            st.markdown(f"#### Hasil Gaya Internal untuk **{pilihan_batang}**")
             st.code(f"""
             Gaya Normal (N): {N:.2f} kN
             Gaya Geser (V): {V:.2f} kN
             Momen Dasar (M): {M_dasar:.2f} kNm
             """)
         
-        # --- VISUALISASI PORTAL FRAME ---
+        # --- VISUALISASI PORTAL FRAME (Detail FEM) ---
         st.subheader("Visualisasi Portal")
-        fig, ax = plt.subplots(figsize=(6, 5))
+        fig, ax = plt.subplots(figsize=(8, 6)) 
+
+        # 1. Definisikan Node dan Elemen
+        nodes = {1: (0, 0), 2: (0, H), 3: (L, H), 4: (L, 0)}
+
+        # 2. Gambar Batang (Elemen)
+        line_style = dict(color='k', linewidth=3.5, zorder=1)
+        ax.plot([0, 0], [0, H], **line_style) # Batang 1 (Kolom Kiri)
+        ax.plot([L, L], [0, H], **line_style) # Batang 3 (Kolom Kanan)
+        ax.plot([0, L], [H, H], **line_style) # Batang 2 (Balok Atas)
         
-        # Gambar Batang Vertikal (Kolom) dan Horizontal (Balok)
-        ax.plot([0, 0], [0, H], 'k-', linewidth=3, label='Batang 1')
-        ax.plot([L, L], [0, H], 'k-', linewidth=3, label='Batang 3')
-        ax.plot([0, L], [H, H], 'k-', linewidth=3, label='Batang 2')
-        
-        # Menandai Batang yang Dipilih (Opsional: ubah warna)
+        # 3. Highlight Batang yang Dipilih
+        highlight_style = dict(color='y', linewidth=6, alpha=0.5, zorder=2)
         if pilihan_batang == "1. Kolom Kiri":
-            ax.plot([0, 0], [0, H], 'r-', linewidth=5) 
+            ax.plot([0, 0], [0, H], **highlight_style)
         elif pilihan_batang == "2. Balok Atas":
-            ax.plot([0, L], [H, H], 'r-', linewidth=5)
+            ax.plot([0, L], [H, H], **highlight_style)
         elif pilihan_batang == "3. Kolom Kanan":
-            ax.plot([L, L], [0, H], 'r-', linewidth=5) 
+            ax.plot([L, L], [0, H], **highlight_style)
 
+        # 4. Label Node (Titik Biru dan Angka)
+        for node, (x, y) in nodes.items():
+            ax.plot(x, y, 'o', color='blue', markersize=8, zorder=3)
+            # Label Node di sudut
+            ax.text(x + 0.1, y + 0.1, str(node), color='blue', fontsize=14, fontweight='bold', zorder=4) 
 
-        # Gambar Beban Horizontal
+        # 5. Gambar Tumpuan Jepit (Fixed Support)
+        support_y = -0.1 * H
+        # Batas dasar
+        ax.plot([0, 0], [0, support_y], 'k--', linewidth=1, zorder=1)
+        ax.plot([L, L], [0, support_y], 'k--', linewidth=1, zorder=1)
+        # Simbol jepit
+        ax.fill([-0.3, 0.3, 0.3, -0.3], [support_y-0.2, support_y-0.2, support_y, support_y], 'gray', edgecolor='black', zorder=2)
+        ax.fill([L-0.3, L+0.3, L+0.3, L-0.3], [support_y-0.2, support_y-0.2, support_y, support_y], 'gray', edgecolor='black', zorder=2)
+
+        # 6. Label Elemen (di tengah batang)
+        ax.text(-0.2, H/2, 'Batang 1', color='red', fontsize=10, ha='right')
+        ax.text(L/2, H + 0.15, 'Batang 2', color='red', fontsize=10, ha='center')
+        ax.text(L + 0.2, H/2, 'Batang 3', color='red', fontsize=10, ha='left')
+
+        # 7. Gambar Beban Horizontal
         if P_hor > 0:
-            ax.arrow(L/2, H, 0.5, 0, head_width=0.2, head_length=0.2, fc='red', ec='red')
-            ax.text(L/2, H + 0.3, f'P={P_hor} kN', color='red', ha='center')
+            ax.arrow(nodes[2][0], nodes[2][1], 0.5, 0, head_width=0.2, head_length=0.2, fc='red', ec='red', linewidth=2, zorder=3)
+            ax.text(nodes[2][0] + 0.8, nodes[2][1], f'P={P_hor} kN', color='red', ha='left', va='center', fontsize=12, zorder=3)
 
-        # Gambar Label Geometri
-        ax.text(L/2, H + 0.1, f'L={L}m', ha='center', va='bottom')
-        ax.text(-0.2, H/2, f'H={H}m', ha='right', va='center')
+        # 8. Label Dimensi (Geometri)
+        ax.text(L/2, -0.2, f'L={L}m', ha='center', va='top')
+        ax.text(-0.5, H/2, f'H={H}m', ha='right', va='center')
 
 
         # Setting Axis
-        ax.set_xlim(-0.5, L + 1)
-        ax.set_ylim(-0.5, H + 1)
+        ax.set_xlim(-1, L + 1)
+        ax.set_ylim(support_y-0.5, H + 1)
         ax.set_aspect('equal', adjustable='box')
         ax.axis('off')
         st.pyplot(fig)
@@ -138,6 +166,7 @@ def show_portal_frame():
     st.markdown(r"""
     Analisis Portal Frame didasarkan pada **Metode Elemen Hingga (FEM)**: $$\mathbf{K} \cdot \mathbf{u} = \mathbf{F}$$
     """)
+
 
 def show_kantilever():
     st.title("Simulasi 2: Balok Kantilever Sederhana")
@@ -179,9 +208,14 @@ def show_kantilever():
 
         # Lendutan (Garis putus-putus)
         x_def = np.linspace(0, L, 100)
-        y_def = -delta_max * (x_def/L)**2 
-        ax.plot(x_def, y_def, 'g--', linewidth=1)
-        ax.text(L, -delta_max-0.2, f'δ={delta_max:.3f}m', color='green', ha='right', va='top')
+        # Menghitung profil lendutan y(x) = (P*x^2 / 6*E*I) * (3*L - x)
+        y_def_raw = (P * (x_def**2)) / (6 * E * I) * (3 * L - x_def)
+        # Gunakan defleksi maksimum, namun arah ke bawah (negatif)
+        max_scaling = delta_max / y_def_raw[-1]
+        y_def_scaled = -y_def_raw * max_scaling
+
+        ax.plot(x_def, y_def_scaled, 'g--', linewidth=1)
+        ax.text(L, -delta_max - 0.2, f'δ={delta_max:.3f}m', color='green', ha='right', va='top')
 
 
         # Setting Axis
