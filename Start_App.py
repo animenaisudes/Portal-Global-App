@@ -1,4 +1,4 @@
-# A_Home.py - Anwendung zur Baustatik-Simulation (Deutsche Version)
+# A_Home.py - Anwendung zur Baustatik-Simulation (Deutsche Version - VISUELLE KORREKTUR)
 import streamlit as st 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,8 +18,8 @@ def show_home_page():
     **Bitte wählen Sie den gewünschten Simulationstyp über das Menü in der Seitenleiste (links) aus.**
     """)
     st.subheader("Verfügbare Analysen:")
-    st.markdown("- **1. 2D Rahmen (Portalrahmen):** Globale Steifigkeitsanalyse (FEM-Grundlagen)")
-    st.markdown("- **2. Kragträger (Ausleger):** Klassische Durchbiegungsanalyse")
+    st.markdown("- **1. Portalrahmen 2D:** Globale Steifigkeitsanalyse (FEM-Grundlagen)")
+    st.markdown("- **2. Kragträger:** Klassische Durchbiegungsanalyse")
 
 def show_portal_frame():
     st.title("🏗️ Simulation 1: Grundlegender Portalrahmen (FEM)")
@@ -70,7 +70,6 @@ def show_portal_frame():
         )
         
         # --- LOGIK DER INNEREN KRÄFTE ---
-        
         if pilihan_batang == "1. Linke Stütze":
             V = P_hor / 2.0 
             M_dasar = V * H
@@ -102,41 +101,62 @@ def show_portal_frame():
         
         # --- VISUALISIERUNG ---
         st.subheader("Strukturdiagramm")
-        # (Matplotlib Code bleibt gleich, da die Achsenbeschriftungen etc. ausgeblendet sind)
-        fig, ax = plt.subplots(figsize=(8, 6)) 
-        nodes = {1: (0, 0), 2: (0, H), 3: (L, H), 4: (L, 0)}
-        line_style = dict(color='k', linewidth=3.5, zorder=1)
-        ax.plot([0, 0], [0, H], **line_style)
-        ax.plot([L, L], [0, H], **line_style) 
-        ax.plot([0, L], [H, H], **line_style) 
+        fig, ax = plt.subplots(figsize=(10, 7)) 
+        ax.set_facecolor('white') # Background putih bersih
         
-        highlight_style = dict(color='y', linewidth=6, alpha=0.5, zorder=2)
+        # 1. Definisikan Node dan Elemen
+        nodes = {1: (0, 0), 2: (0, H), 3: (L, H), 4: (L, 0)}
+        support_y_offset = -0.3 
+
+        # 2. Gambar Batang (Elemen)
+        element_style = dict(color='k', linewidth=4, zorder=2, solid_capstyle='round')
+        ax.plot([0, 0], [0, H], **element_style) # Batang 1
+        ax.plot([L, L], [0, H], **element_style) # Batang 3
+        ax.plot([0, L], [H, H], **element_style) # Batang 2
+        
+        # 3. Highlight Batang yang Dipilih
+        highlight_style = dict(color='orange', linewidth=8, alpha=0.7, zorder=3, solid_capstyle='round')
         if pilihan_batang == "1. Linke Stütze":
             ax.plot([0, 0], [0, H], **highlight_style)
         elif pilihan_batang == "2. Oberer Balken":
-            ax.plot([0, L], [H, H], 'y-', linewidth=6, alpha=0.5, zorder=2)
+            ax.plot([0, L], [H, H], 'y-', linewidth=8, alpha=0.7, zorder=3)
         elif pilihan_batang == "3. Rechte Stütze":
             ax.plot([L, L], [0, H], **highlight_style)
 
+        # 4. Label Node (Titik Biru dan Angka)
         for node, (x, y) in nodes.items():
-            ax.plot(x, y, 'o', color='blue', markersize=8, zorder=3)
-            ax.text(x + 0.1, y + 0.1, str(node), color='blue', fontsize=14, fontweight='bold', zorder=4) 
+            ax.plot(x, y, 'o', color='darkblue', markersize=10, zorder=4, markeredgecolor='white', markeredgewidth=1)
+            # Node label diposisikan di luar bingkai agar tidak bertabrakan dengan elemen/dimensi
+            ax.text(x + 0.15, y + 0.15, str(node), color='darkblue', fontsize=16, fontweight='bold', zorder=5) 
 
-        support_y = -0.1 * H
-        ax.fill([-0.3, 0.3, 0.3, -0.3], [support_y-0.2, support_y-0.2, support_y, support_y], 'gray', edgecolor='black', zorder=2)
-        ax.fill([L-0.3, L+0.3, L+0.3, L-0.3], [support_y-0.2, support_y-0.2, support_y, support_y], 'gray', edgecolor='black', zorder=2)
+        # 5. Gambar Tumpuan Jepit (Fixed Support)
+        ax.fill([-0.4, 0.4, 0.4, -0.4], [support_y_offset - 0.3, support_y_offset - 0.3, support_y_offset, support_y_offset], 'gray', edgecolor='black', zorder=2)
+        ax.fill([L-0.4, L+0.4, L+0.4, L-0.4], [support_y_offset - 0.3, support_y_offset - 0.3, support_y_offset, support_y_offset], 'gray', edgecolor='black', zorder=2)
 
+        # 6. Gambar Beban Horizontal
         if P_hor > 0:
-            ax.arrow(nodes[2][0], nodes[2][1], 0.5, 0, head_width=0.2, head_length=0.2, fc='red', ec='red', linewidth=2, zorder=3)
-            ax.text(nodes[2][0] + 0.8, nodes[2][1], f'P={P_hor} kN', color='red', ha='left', va='center', fontsize=12, zorder=3)
+            arrow_start_x = nodes[2][0] + 0.1 
+            ax.arrow(arrow_start_x, nodes[2][1], 0.7, 0, head_width=0.3, head_length=0.4, fc='red', ec='red', linewidth=2.5, zorder=3)
+            ax.text(arrow_start_x + 0.9, nodes[2][1], f'P={P_hor:.1f} kN', color='red', ha='left', va='center', fontsize=14, fontweight='bold', zorder=3)
 
-        ax.text(L/2, -0.2, f'L={L}m', ha='center', va='top')
-        ax.text(-0.5, H/2, f'H={H}m', ha='right', va='center')
-        ax.text(-0.2, H/2, 'Element 1', color='red', fontsize=10, ha='right')
-        ax.text(L/2, H + 0.15, 'Element 2', color='red', fontsize=10, ha='center')
+        # 7. Label Elemen (Penomoran Batang - Ditempatkan agar tidak bertabrakan)
+        # Batang 1 (Kolom Kiri)
+        ax.text(-0.5, H/2, 'Element 1', color='darkgreen', fontsize=12, ha='right', va='center') 
+        # Batang 2 (Balok Atas)
+        ax.text(L/2, H + 0.4, 'Element 2', color='darkgreen', fontsize=12, ha='center', va='bottom')
+        # Batang 3 (Kolom Kanan)
+        ax.text(L + 0.5, H/2, 'Element 3', color='darkgreen', fontsize=12, ha='left', va='center')
 
-        ax.set_xlim(-1, L + 1)
-        ax.set_ylim(support_y-0.5, H + 1)
+        # 8. Label Dimensi (Geometri - Ditempatkan lebih jauh untuk menghindari bentrok)
+        # Dimensi L (Horizontal)
+        ax.text(L/2, support_y_offset - 0.2, f'L = {L:.1f} m', ha='center', va='top', fontsize=12, color='darkgray')
+        # Dimensi H (Vertikal)
+        ax.text(-1, H/2, f'H = {H:.1f} m', ha='center', va='center', fontsize=12, color='darkgray') # Pindah jauh ke kiri
+
+
+        # Setting Axis
+        ax.set_xlim(-2, L + 2) # Perluasan sumbu untuk label
+        ax.set_ylim(support_y_offset - 1, H + 1)
         ax.set_aspect('equal', adjustable='box')
         ax.axis('off')
         st.pyplot(fig)
@@ -172,35 +192,39 @@ def show_kantilever():
         
         # VISUALISIERUNG KRAGTRÄGER
         st.subheader("Kragträger-Diagramm")
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(10, 5)) 
+        ax.set_facecolor('white') 
         
         # Träger
-        ax.plot([0, L], [0, 0], color='blue', linewidth=5) 
+        ax.plot([0, L], [0, 0], color='darkblue', linewidth=5, zorder=2) 
         
-        # Einspannung (Fix Support)
-        ax.plot([0, 0], [-0.5, 0.5], color='black', linewidth=10)
-        ax.fill([0, -0.2, -0.2, 0], [-0.5, -0.3, 0.3, 0.5], color='gray', edgecolor='black')
+        # Jepitan (Fix Support)
+        ax.plot([0, 0], [-0.5, 0.5], color='black', linewidth=10, zorder=1)
+        ax.fill([0, -0.2, -0.2, 0], [-0.5, -0.3, 0.3, 0.5], color='gray', edgecolor='black', zorder=1)
+        ax.text(0, -0.8, 'Einspannung', ha='center', va='top', fontsize=10, color='darkgray', zorder=1)
 
-        # Last (P)
-        ax.arrow(L, 0.5, 0, -1.0, head_width=0.2, head_length=0.3, fc='red', ec='red', linewidth=2)
-        ax.text(L + 0.3, 0.5, f'P={P} kN', color='red', ha='left', va='center') 
 
-        # Länge (L)
-        ax.plot([0, L], [-0.5, -0.5], 'k--')
-        ax.text(L/2, -0.7, f'L={L} m', ha='center', va='top') 
+        # Beban Terpusat
+        arrow_start_y = 0.5
+        ax.arrow(L, arrow_start_y, 0, -1.0, head_width=0.2, head_length=0.3, fc='red', ec='red', linewidth=2.5, zorder=3)
+        ax.text(L + 0.3, arrow_start_y, f'P={P:.1f} kN', color='red', ha='left', va='center', fontsize=14, fontweight='bold', zorder=3) 
 
-        # Durchbiegung (Skizze)
+        # Panjang Balok
+        ax.plot([0, L], [-0.7, -0.7], 'k--', linewidth=1, zorder=1)
+        ax.text(L/2, -0.8, f'L={L:.1f} m', ha='center', va='top', fontsize=12, color='darkgray') 
+
+        # Lendutan (Garis putus-putus)
         x_def = np.linspace(0, L, 100)
         y_def_raw = (P * (x_def**2)) / (6 * E * I) * (3 * L - x_def)
-        max_scaling = delta_max / y_def_raw[-1]
-        y_def_scaled = -y_def_raw * max_scaling
+        max_scaling = delta_max / y_def_raw[-1] if y_def_raw[-1] != 0 else 0
+        y_def_scaled = -y_def_raw * max_scaling * (0.5 / (delta_max + 1e-9)) 
 
-        ax.plot(x_def, y_def_scaled, 'g--', linewidth=1)
-        ax.text(L, -delta_max-0.2, f'δ={delta_max:.3f}m', color='green', ha='right', va='top')
+        ax.plot(x_def, y_def_scaled, 'g--', linewidth=2, zorder=2)
+        ax.text(L, y_def_scaled[-1] - 0.2, f'δ={delta_max:.3f}m', color='green', ha='right', va='top', fontsize=12, fontweight='bold')
 
 
         # Achseneinstellungen
-        ax.set_xlim(-0.5, L + 1)
+        ax.set_xlim(-1, L + 1)
         ax.set_ylim(-1.5, 1.0)
         ax.set_aspect('equal', adjustable='box')
         ax.axis('off')
