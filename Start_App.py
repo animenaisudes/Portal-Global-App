@@ -146,9 +146,9 @@ def show_portal_frame():
 
         # 8. Label Dimensi (Geometri - Ditempatkan sangat jauh ke kiri agar tidak bentrok dengan elemen/node)
         # Label Dimensi L (Horizontal)
-        ax.text(L/2, support_y_offset - 0.2, f'L = {L:.1f} m', ha='center', va='top', fontsize=12, color='darkgray')
+        ax.text(L/2, support_y_offset - 0.2, f'L = {L:.1f} m', ha='center', va='top', fontsize=12, color='black')
         # Label Dimensi H (Vertikal)
-        ax.text(-1.5, H/2, f'H = {H:.1f} m', ha='right', va='center', fontsize=12, color='darkgray') 
+        ax.text(-1.5, H/2, f'H = {H:.1f} m', ha='right', va='center', fontsize=12, color='black') 
         ax.plot([-1.2, -1.2], [0, H], 'k--', linewidth=1, zorder=1) # Garis dimensi bantu
 
 
