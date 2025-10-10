@@ -140,9 +140,9 @@ def show_portal_frame():
             ax.text(arrow_start_x + 0.9, nodes[2][1], f'P={P_hor:.1f} kN', color='red', ha='left', va='center', fontsize=12, fontweight='bold', zorder=3)
 
         # 7. Label Elemen (Penomoran Batang - Diatur agar tidak bentrok)
-        ax.text(-0.8, H/2, 'Element 1', color='darkgreen', fontsize=12, ha='right', va='center') # Pindah lebih jauh ke kiri
-        ax.text(L/2, H + 0.3, 'Element 2', color='darkgreen', fontsize=12, ha='center', va='bottom') # Pindah lebih jauh ke atas
-        ax.text(L + 0.8, H/2, 'Element 3', color='darkgreen', fontsize=12, ha='left', va='center') # Pindah lebih jauh ke kanan
+        #ax.text(-0.8, H/2, 'Element 1', color='darkgreen', fontsize=12, ha='right', va='center') # Pindah lebih jauh ke kiri
+        #ax.text(L/2, H + 0.3, 'Element 2', color='darkgreen', fontsize=12, ha='center', va='bottom') # Pindah lebih jauh ke atas
+        #ax.text(L + 0.8, H/2, 'Element 3', color='darkgreen', fontsize=12, ha='left', va='center') # Pindah lebih jauh ke kanan
 
         # 8. Label Dimensi (Geometri - Ditempatkan sangat jauh ke kiri agar tidak bentrok dengan elemen/node)
         # Label Dimensi L (Horizontal)
