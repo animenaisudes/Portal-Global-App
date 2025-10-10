@@ -136,7 +136,7 @@ def show_portal_frame():
         # 6. Gambar Beban Horizontal
         if P_hor > 0:
             arrow_start_x = nodes[2][0] + 0.1
-            text_y_position = nodes [2][1] - 0.15
+            text_y_position = nodes [2][1] - 0.5
             ax.arrow(arrow_start_x, nodes[2][1], 0.7, 0, head_width=0.3, head_length=0.4, fc='red', ec='red', linewidth=2.5, zorder=3)
             ax.text(arrow_start_x + 0.9, nodes[2][1], f'P={P_hor:.1f} kN', color='red', ha='left', va='center', fontsize=12, fontweight='bold', zorder=3)
 
