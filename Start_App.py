@@ -1,10 +1,10 @@
-# A_Home.py - Anwendung zur Baustatik-Simulation (Deutsche Version - VISUELLE KORREKTUR)
+# A_Home.py - Anwendung zur Baustatik-Simulation (Deutsche Version - Final)
 import streamlit as st 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import solve 
 
-# Konfiguration Halaman
+# Konfigurasi Halaman
 st.set_page_config(layout="centered", page_title="Baustatik-Simulation RWTH")
 
 # --- DEFINITION DER SEITEN UND FUNKTIONEN ---
@@ -70,6 +70,7 @@ def show_portal_frame():
         )
         
         # --- LOGIK DER INNEREN KRÄFTE ---
+        
         if pilihan_batang == "1. Linke Stütze":
             V = P_hor / 2.0 
             M_dasar = V * H
@@ -102,31 +103,30 @@ def show_portal_frame():
         # --- VISUALISIERUNG ---
         st.subheader("Strukturdiagramm")
         fig, ax = plt.subplots(figsize=(10, 7)) 
-        ax.set_facecolor('white') # Background putih bersih
+        ax.set_facecolor('white') 
         
         # 1. Definisikan Node dan Elemen
         nodes = {1: (0, 0), 2: (0, H), 3: (L, H), 4: (L, 0)}
         support_y_offset = -0.3 
 
         # 2. Gambar Batang (Elemen)
-        element_style = dict(color='k', linewidth=4, zorder=2, solid_capstyle='round')
-        ax.plot([0, 0], [0, H], **element_style) # Batang 1
-        ax.plot([L, L], [0, H], **element_style) # Batang 3
-        ax.plot([0, L], [H, H], **element_style) # Batang 2
+        line_style = dict(color='k', linewidth=3.5, zorder=1)
+        ax.plot([0, 0], [0, H], **line_style) # Batang 1 (Kolom Kiri)
+        ax.plot([L, L], [0, H], **line_style) # Batang 3 (Kolom Kanan)
+        ax.plot([0, L], [H, H], **line_style) # Batang 2 (Balok Atas)
         
         # 3. Highlight Batang yang Dipilih
-        highlight_style = dict(color='orange', linewidth=8, alpha=0.7, zorder=3, solid_capstyle='round')
+        highlight_style = dict(color='orange', linewidth=8, alpha=0.7, zorder=2)
         if pilihan_batang == "1. Linke Stütze":
             ax.plot([0, 0], [0, H], **highlight_style)
         elif pilihan_batang == "2. Oberer Balken":
-            ax.plot([0, L], [H, H], 'y-', linewidth=8, alpha=0.7, zorder=3)
+            ax.plot([0, L], [H, H], 'y-', linewidth=8, alpha=0.7, zorder=2)
         elif pilihan_batang == "3. Rechte Stütze":
-            ax.plot([L, L], [0, H], **highlight_style)
+            ax.plot([L, L], [0, H], 'y-', linewidth=8, alpha=0.7, zorder=2)
 
         # 4. Label Node (Titik Biru dan Angka)
         for node, (x, y) in nodes.items():
             ax.plot(x, y, 'o', color='darkblue', markersize=10, zorder=4, markeredgecolor='white', markeredgewidth=1)
-            # Node label diposisikan di luar bingkai agar tidak bertabrakan dengan elemen/dimensi
             ax.text(x + 0.15, y + 0.15, str(node), color='darkblue', fontsize=16, fontweight='bold', zorder=5) 
 
         # 5. Gambar Tumpuan Jepit (Fixed Support)
@@ -137,25 +137,23 @@ def show_portal_frame():
         if P_hor > 0:
             arrow_start_x = nodes[2][0] + 0.1 
             ax.arrow(arrow_start_x, nodes[2][1], 0.7, 0, head_width=0.3, head_length=0.4, fc='red', ec='red', linewidth=2.5, zorder=3)
-            ax.text(arrow_start_x + 0.9, nodes[2][1], f'P={P_hor:.1f} kN', color='red', ha='left', va='center', fontsize=14, fontweight='bold', zorder=3)
+            ax.text(arrow_start_x + 0.9, nodes[2][1], f'P={P_hor:.1f} kN', color='red', ha='left', va='center', fontsize=12, fontweight='bold', zorder=3)
 
-        # 7. Label Elemen (Penomoran Batang - Ditempatkan agar tidak bertabrakan)
-        # Batang 1 (Kolom Kiri)
-        ax.text(-0.5, H/2, 'Element 1', color='darkgreen', fontsize=12, ha='right', va='center') 
-        # Batang 2 (Balok Atas)
-        ax.text(L/2, H + 0.4, 'Element 2', color='darkgreen', fontsize=12, ha='center', va='bottom')
-        # Batang 3 (Kolom Kanan)
-        ax.text(L + 0.5, H/2, 'Element 3', color='darkgreen', fontsize=12, ha='left', va='center')
+        # 7. Label Elemen (Penomoran Batang - Diatur agar tidak bentrok)
+        ax.text(-0.8, H/2, 'Element 1', color='darkgreen', fontsize=12, ha='right', va='center') # Pindah lebih jauh ke kiri
+        ax.text(L/2, H + 0.3, 'Element 2', color='darkgreen', fontsize=12, ha='center', va='bottom') # Pindah lebih jauh ke atas
+        ax.text(L + 0.8, H/2, 'Element 3', color='darkgreen', fontsize=12, ha='left', va='center') # Pindah lebih jauh ke kanan
 
-        # 8. Label Dimensi (Geometri - Ditempatkan lebih jauh untuk menghindari bentrok)
-        # Dimensi L (Horizontal)
+        # 8. Label Dimensi (Geometri - Ditempatkan sangat jauh ke kiri agar tidak bentrok dengan elemen/node)
+        # Label Dimensi L (Horizontal)
         ax.text(L/2, support_y_offset - 0.2, f'L = {L:.1f} m', ha='center', va='top', fontsize=12, color='darkgray')
-        # Dimensi H (Vertikal)
-        ax.text(-1, H/2, f'H = {H:.1f} m', ha='center', va='center', fontsize=12, color='darkgray') # Pindah jauh ke kiri
+        # Label Dimensi H (Vertikal)
+        ax.text(-1.5, H/2, f'H = {H:.1f} m', ha='right', va='center', fontsize=12, color='darkgray') 
+        ax.plot([-1.2, -1.2], [0, H], 'k--', linewidth=1, zorder=1) # Garis dimensi bantu
 
 
         # Setting Axis
-        ax.set_xlim(-2, L + 2) # Perluasan sumbu untuk label
+        ax.set_xlim(-2.5, L + 2.5) 
         ax.set_ylim(support_y_offset - 1, H + 1)
         ax.set_aspect('equal', adjustable='box')
         ax.axis('off')
@@ -210,7 +208,7 @@ def show_kantilever():
         ax.text(L + 0.3, arrow_start_y, f'P={P:.1f} kN', color='red', ha='left', va='center', fontsize=14, fontweight='bold', zorder=3) 
 
         # Panjang Balok
-        ax.plot([0, L], [-0.7, -0.7], 'k--', linewidth=1, zorder=1)
+        ax.plot([0, L], [-0.7, -0.7], 'k--')
         ax.text(L/2, -0.8, f'L={L:.1f} m', ha='center', va='top', fontsize=12, color='darkgray') 
 
         # Lendutan (Garis putus-putus)
